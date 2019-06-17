@@ -1,0 +1,29 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Exercise App</title>
+    <link rel="stylesheet" href="stylessheet.css" />
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+      crossorigin="anonymous"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <div class="col-md-4 card">
+        <img src="https://images.pexels.com/photos/841130/pexels-photo-841130.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500" 
+        alt="Lifting Weights" class="card-img-top">
+        <form class = "mt-4" action="api/adduser" method = "post">
+          <div class="form-group">
+            <Label for "username">User</Label>
+            <input type="text" class = "form-control" name = "username" placeholder = "username">
+          </div>
+          <button class = "btn btn-success" type = "submit">Submit</button>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
