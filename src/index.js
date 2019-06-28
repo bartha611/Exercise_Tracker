@@ -2,6 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const { User } = require("./../mongo-db");
 const mongoose = require("mongoose");
+const moment = require("moment");
 require("mongoose").Promise = require("bluebird");
 mongoose.set("useFindAndModify", false);
 
@@ -26,16 +27,17 @@ app.post("/api/adduser", function(req, res) {
     .then(response => {
       if (response) {
         res.send("Username already exists");
+      } else {
+        const user = new User({ username: username });
+        user
+          .save()
+          .then(name => {
+            res.json({ id: name.id });
+          })
+          .catch(err => {
+            console.log(err);
+          });
       }
-      const user = new User({ username: username });
-      user
-        .save()
-        .then(name => {
-          res.json({ id: name.id });
-        })
-        .catch(err => {
-          console.log(err);
-        });
     });
 });
 app.post("/api/addExercise", function(req, res) {
@@ -64,19 +66,46 @@ app.post("/api/addExercise", function(req, res) {
 });
 
 app.get("/api/exercise/log", async function(req, res) {
-  var myQuery = {};
-  if (req.query.username) {
-    myQuery["username"] = req.query.username;
-  } else {
-    res.send("Username was not set");
+  if (!req.query.username) {
+    return res.send("Username not entered");
   }
-  console.log(myQuery);
-  try {
-    const exercises = await User.findOne({
-      username: req.query.username
-    }).exec();
-    res.json(exercises);
-  } catch (err) {
-    res.send(err);
+  var query = [];
+  query.push({ $match: { username: req.query.username } });
+  query.push({ $unwind: "$exercise" });
+  if (req.query.from) {
+    var from = moment(req.query.from, "YYYY-MM-DD");
+    if (!from.isValid()) {
+      return res.send("Invalid from date");
+    }
+    from = from.toArrray();
+    query.push({
+      $match: { "exercise.date": { $gte: new Date(from[0], from[1], from[2]) } }
+    });
   }
+  if (req.query.to) {
+    var to = moment(req.query.to, "YYYY-MM-DD");
+    if (!to.isValid()) {
+      return res.send("Invalid to date");
+    }
+    to = to.toArray();
+    query.push({
+      $match: { "exercise.date": { $lte: new Date(to[0], to[1], to[2]) } }
+    });
+  }
+  if (req.query.limit) {
+    const numberRegex = /^\d+$/;
+    if (!numberRegex.test(req.query.limit)) {
+      return res.send("Invald limit");
+    }
+    query.push({ $limit: parseInt(req.query.limit) });
+  }
+  query.push({
+    $group: {
+      _id: req.query.username,
+      count: { $sum: 1 },
+      exercises: { $push: "$exercise" }
+    }
+  });
+  const matches = await User.aggregate(query);
+  res.json(matches);
 });

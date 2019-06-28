@@ -14,3 +14,7 @@ img {
 .card {
   margin: 20px;
 }
+#url {
+  background: beige;
+  border: 1px solid black;
+}
